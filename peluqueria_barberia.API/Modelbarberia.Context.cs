@@ -13,10 +13,10 @@ namespace peluqueria_barberia.API
     using System.Data.Entity;
     using System.Data.Entity.Infrastructure;
     
-    public partial class BarberiaEsteticaEntities : DbContext
+    public partial class BarberiaEsteticaEntities1 : DbContext
     {
-        public BarberiaEsteticaEntities()
-            : base("name=BarberiaEsteticaEntities")
+        public BarberiaEsteticaEntities1()
+            : base("name=BarberiaEsteticaEntities1")
         {
         }
     

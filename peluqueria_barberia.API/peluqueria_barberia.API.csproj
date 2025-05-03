@@ -171,50 +171,50 @@
     <Compile Include="Areas\HelpPage\SampleGeneration\TextSample.cs" />
     <Compile Include="Areas\HelpPage\XmlDocumentationProvider.cs" />
     <Compile Include="Clientes.cs">
-      <DependentUpon>ModelBarberiaEstetica.tt</DependentUpon>
+      <DependentUpon>Modelbarberia.tt</DependentUpon>
     </Compile>
+    <Compile Include="Controllers\BarberiaPeluqueriaController.cs" />
     <Compile Include="Controllers\HomeController.cs" />
-    <Compile Include="Controllers\Peluqueria_BarberiaController.cs" />
     <Compile Include="Controllers\ValuesController.cs" />
     <Compile Include="Empleados.cs">
-      <DependentUpon>ModelBarberiaEstetica.tt</DependentUpon>
+      <DependentUpon>Modelbarberia.tt</DependentUpon>
     </Compile>
     <Compile Include="Global.asax.cs">
       <DependentUpon>Global.asax</DependentUpon>
     </Compile>
     <Compile Include="HistorialTurnos.cs">
-      <DependentUpon>ModelBarberiaEstetica.tt</DependentUpon>
+      <DependentUpon>Modelbarberia.tt</DependentUpon>
     </Compile>
-    <Compile Include="ModelBarberiaEstetica.Context.cs">
+    <Compile Include="Modelbarberia.Context.cs">
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>
-      <DependentUpon>ModelBarberiaEstetica.Context.tt</DependentUpon>
+      <DependentUpon>Modelbarberia.Context.tt</DependentUpon>
     </Compile>
-    <Compile Include="ModelBarberiaEstetica.cs">
+    <Compile Include="Modelbarberia.cs">
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>
-      <DependentUpon>ModelBarberiaEstetica.tt</DependentUpon>
+      <DependentUpon>Modelbarberia.tt</DependentUpon>
     </Compile>
-    <Compile Include="ModelBarberiaEstetica.Designer.cs">
+    <Compile Include="Modelbarberia.Designer.cs">
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>
-      <DependentUpon>ModelBarberiaEstetica.edmx</DependentUpon>
+      <DependentUpon>Modelbarberia.edmx</DependentUpon>
     </Compile>
     <Compile Include="Notificaciones.cs">
-      <DependentUpon>ModelBarberiaEstetica.tt</DependentUpon>
+      <DependentUpon>Modelbarberia.tt</DependentUpon>
     </Compile>
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Roles.cs">
-      <DependentUpon>ModelBarberiaEstetica.tt</DependentUpon>
+      <DependentUpon>Modelbarberia.tt</DependentUpon>
     </Compile>
     <Compile Include="Servicios.cs">
-      <DependentUpon>ModelBarberiaEstetica.tt</DependentUpon>
+      <DependentUpon>Modelbarberia.tt</DependentUpon>
     </Compile>
     <Compile Include="Turnos.cs">
-      <DependentUpon>ModelBarberiaEstetica.tt</DependentUpon>
+      <DependentUpon>Modelbarberia.tt</DependentUpon>
     </Compile>
     <Compile Include="Usuarios.cs">
-      <DependentUpon>ModelBarberiaEstetica.tt</DependentUpon>
+      <DependentUpon>Modelbarberia.tt</DependentUpon>
     </Compile>
   </ItemGroup>
   <ItemGroup>
@@ -226,15 +226,15 @@
     <Content Include="favicon.ico" />
     <Content Include="fonts\glyphicons-halflings-regular.svg" />
     <Content Include="Global.asax" />
-    <Content Include="ModelBarberiaEstetica.Context.tt">
+    <Content Include="Modelbarberia.Context.tt">
       <Generator>TextTemplatingFileGenerator</Generator>
-      <DependentUpon>ModelBarberiaEstetica.edmx</DependentUpon>
-      <LastGenOutput>ModelBarberiaEstetica.Context.cs</LastGenOutput>
+      <DependentUpon>Modelbarberia.edmx</DependentUpon>
+      <LastGenOutput>Modelbarberia.Context.cs</LastGenOutput>
     </Content>
-    <Content Include="ModelBarberiaEstetica.tt">
+    <Content Include="Modelbarberia.tt">
       <Generator>TextTemplatingFileGenerator</Generator>
-      <DependentUpon>ModelBarberiaEstetica.edmx</DependentUpon>
-      <LastGenOutput>ModelBarberiaEstetica.cs</LastGenOutput>
+      <DependentUpon>Modelbarberia.edmx</DependentUpon>
+      <LastGenOutput>Modelbarberia.cs</LastGenOutput>
     </Content>
     <Content Include="Scripts\bootstrap.js" />
     <Content Include="Scripts\bootstrap.min.js" />
@@ -257,12 +257,12 @@
     <Content Include="Areas\HelpPage\Views\Help\DisplayTemplates\CollectionModelDescription.cshtml" />
     <Content Include="Areas\HelpPage\Views\Help\DisplayTemplates\ApiGroup.cshtml" />
     <Content Include="Areas\HelpPage\Views\Help\Api.cshtml" />
-    <EntityDeploy Include="ModelBarberiaEstetica.edmx">
+    <EntityDeploy Include="Modelbarberia.edmx">
       <Generator>EntityModelCodeGenerator</Generator>
-      <LastGenOutput>ModelBarberiaEstetica.Designer.cs</LastGenOutput>
+      <LastGenOutput>Modelbarberia.Designer.cs</LastGenOutput>
     </EntityDeploy>
-    <Content Include="ModelBarberiaEstetica.edmx.diagram">
-      <DependentUpon>ModelBarberiaEstetica.edmx</DependentUpon>
+    <Content Include="Modelbarberia.edmx.diagram">
+      <DependentUpon>Modelbarberia.edmx</DependentUpon>
     </Content>
     <None Include="Scripts\jquery-3.4.1.intellisense.js" />
     <Content Include="Scripts\jquery-3.4.1.js" />

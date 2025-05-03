@@ -443,7 +443,7 @@
           <End Role="Empleados" Type="Self.Empleados" Multiplicity="*" />
           <End Role="Servicios" Type="Self.Servicios" Multiplicity="*" />
         </Association>
-        <EntityContainer Name="BarberiaEsteticaEntities" annotation:LazyLoadingEnabled="true">
+        <EntityContainer Name="BarberiaEsteticaEntities1" annotation:LazyLoadingEnabled="true">
           <EntitySet Name="Clientes" EntityType="Self.Clientes" />
           <EntitySet Name="Empleados" EntityType="Self.Empleados" />
           <EntitySet Name="HistorialTurnos" EntityType="Self.HistorialTurnos" />
@@ -490,7 +490,7 @@
     <!-- C-S mapping content -->
     <edmx:Mappings>
       <Mapping Space="C-S" xmlns="http://schemas.microsoft.com/ado/2009/11/mapping/cs">
-        <EntityContainerMapping StorageEntityContainer="BarberiaEsteticaModelStoreContainer" CdmEntityContainer="BarberiaEsteticaEntities">
+        <EntityContainerMapping StorageEntityContainer="BarberiaEsteticaModelStoreContainer" CdmEntityContainer="BarberiaEsteticaEntities1">
           <EntitySetMapping Name="Clientes">
             <EntityTypeMapping TypeName="BarberiaEsteticaModel.Clientes">
               <MappingFragment StoreEntitySet="Clientes">
