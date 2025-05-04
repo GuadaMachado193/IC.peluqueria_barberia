@@ -4,15 +4,25 @@ using System.Linq;
 using System.Net;
 using System.Net.Http;
 using System.Web.Http;
-
+using System.Data.Entity; // Importa el espacio de nombres EntityFramework
 namespace peluqueria_barberia.API.Controllers
 {
     public class BarberiaPeluqueriaController : ApiController
     {
         // GET: api/BarberiaPeluqueria
-        public IEnumerable<string> Get()
+        // GET: api/BarberiaPeluqueria
+        public List<Turnos> Get()
         {
-            return new string[] { "value1", "value2" };
+            List<Turnos> oList = new List<Turnos>();
+            using (BarberiaEsteticaEntities1 db = new BarberiaEsteticaEntities1())
+            {
+                oList = db.Turnos
+                    .Include(t => t.Clientes)    // Carga eager del Cliente
+                    .Include(t => t.Empleados)   // Carga eager del Empleado
+                    .Include(t => t.Servicios)   // Carga eager del Servicio
+                    .ToList();
+            }
+            return oList;
         }
 
         // GET: api/BarberiaPeluqueria/5
