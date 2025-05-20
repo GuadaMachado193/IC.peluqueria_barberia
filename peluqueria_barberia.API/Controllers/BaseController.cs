@@ -15,6 +15,16 @@ namespace peluqueria_barberia.API.Controllers
             _context = new BarberiaEsteticaContext();
         }
 
+        protected HttpResponseMessage CreateResponse<T>(HttpStatusCode statusCode, T data)
+        {
+            return Request.CreateResponse(statusCode, data);
+        }
+
+        protected HttpResponseMessage CreateErrorResponse(HttpStatusCode statusCode, string message)
+        {
+            return Request.CreateErrorResponse(statusCode, message);
+        }
+
         protected override void Dispose(bool disposing)
         {
             if (disposing)
@@ -22,17 +32,6 @@ namespace peluqueria_barberia.API.Controllers
                 _context.Dispose();
             }
             base.Dispose(disposing);
-        }
-
-        protected HttpResponseMessage CreateResponse(HttpStatusCode statusCode, object data = null)
-        {
-            var response = Request.CreateResponse(statusCode, data);
-            return response;
-        }
-
-        protected HttpResponseMessage CreateErrorResponse(HttpStatusCode statusCode, string message)
-        {
-            return Request.CreateErrorResponse(statusCode, message);
         }
     }
 } 

@@ -4,13 +4,11 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 namespace peluqueria_barberia.API.Models
 {
-    [Table("Notificaciones")]
     public class Notificacion
     {
         [Key]
         public int NotificacionID { get; set; }
 
-        [Required]
         public int TurnoID { get; set; }
 
         [StringLength(50)]
@@ -21,7 +19,7 @@ namespace peluqueria_barberia.API.Models
 
         public DateTime? FechaEnvio { get; set; }
 
-        // Relación
+        // Relaciones
         [ForeignKey("TurnoID")]
         public virtual Turno Turno { get; set; }
     }

@@ -18,11 +18,13 @@ namespace peluqueria_barberia.API.Models
         public string Descripcion { get; set; }
 
         [Required]
-        [Column(TypeName = "decimal(10,2)")]
         public decimal Precio { get; set; }
 
         [Required]
         public int DuracionMinutos { get; set; }
+
+        [StringLength(20)]
+        public string Estado { get; set; }
 
         // Relaciones
         public virtual ICollection<EmpleadoServicio> EmpleadoServicios { get; set; }

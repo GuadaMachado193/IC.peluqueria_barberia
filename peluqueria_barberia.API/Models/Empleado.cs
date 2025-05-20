@@ -28,6 +28,9 @@ namespace peluqueria_barberia.API.Models
         [Required]
         public TimeSpan HorarioFin { get; set; }
 
+        [StringLength(20)]
+        public string Estado { get; set; }
+
         // Relaciones
         public virtual ICollection<EmpleadoServicio> EmpleadoServicios { get; set; }
         public virtual ICollection<Turno> Turnos { get; set; }

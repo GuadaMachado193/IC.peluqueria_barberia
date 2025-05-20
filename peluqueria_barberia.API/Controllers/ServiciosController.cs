@@ -1,10 +1,8 @@
 using System;
-using System.Collections.Generic;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
 using System.Web.Http;
-using System.Data.Entity;
 using peluqueria_barberia.API.Models;
 
 namespace peluqueria_barberia.API.Controllers
@@ -31,18 +29,31 @@ namespace peluqueria_barberia.API.Controllers
         {
             try
             {
-                var servicio = _context.Servicios
-                    .Include(s => s.EmpleadoServicios)
-                    .Include(s => s.EmpleadoServicios.Select(es => es.Empleado))
-                    .Include(s => s.Turnos)
-                    .FirstOrDefault(s => s.ServicioID == id);
-
+                var servicio = _context.Servicios.Find(id);
                 if (servicio == null)
                 {
                     return CreateErrorResponse(HttpStatusCode.NotFound, "Servicio no encontrado");
                 }
-
                 return CreateResponse(HttpStatusCode.OK, servicio);
+            }
+            catch (Exception ex)
+            {
+                return CreateErrorResponse(HttpStatusCode.InternalServerError, ex.Message);
+            }
+        }
+
+        // GET: api/servicios/activos
+        [HttpGet]
+        [Route("activos")]
+        public HttpResponseMessage GetActivos()
+        {
+            try
+            {
+                var servicios = _context.Servicios
+                    .Where(s => s.Estado == "activo")
+                    .ToList();
+
+                return CreateResponse(HttpStatusCode.OK, servicios);
             }
             catch (Exception ex)
             {
@@ -57,7 +68,7 @@ namespace peluqueria_barberia.API.Controllers
             {
                 if (!ModelState.IsValid)
                 {
-                    return CreateErrorResponse(HttpStatusCode.BadRequest, "Datos de servicio inválidos");
+                    return CreateErrorResponse(HttpStatusCode.BadRequest, "Datos inválidos");
                 }
 
                 _context.Servicios.Add(servicio);
@@ -78,12 +89,7 @@ namespace peluqueria_barberia.API.Controllers
             {
                 if (!ModelState.IsValid)
                 {
-                    return CreateErrorResponse(HttpStatusCode.BadRequest, "Datos de servicio inválidos");
-                }
-
-                if (id != servicio.ServicioID)
-                {
-                    return CreateErrorResponse(HttpStatusCode.BadRequest, "ID de servicio no coincide");
+                    return CreateErrorResponse(HttpStatusCode.BadRequest, "Datos inválidos");
                 }
 
                 var servicioExistente = _context.Servicios.Find(id);
@@ -92,10 +98,15 @@ namespace peluqueria_barberia.API.Controllers
                     return CreateErrorResponse(HttpStatusCode.NotFound, "Servicio no encontrado");
                 }
 
-                _context.Entry(servicioExistente).CurrentValues.SetValues(servicio);
+                servicioExistente.Nombre = servicio.Nombre;
+                servicioExistente.Descripcion = servicio.Descripcion;
+                servicioExistente.Precio = servicio.Precio;
+                servicioExistente.DuracionMinutos = servicio.DuracionMinutos;
+                servicioExistente.Estado = servicio.Estado;
+
                 _context.SaveChanges();
 
-                return CreateResponse(HttpStatusCode.NoContent);
+                return CreateResponse(HttpStatusCode.OK, servicioExistente);
             }
             catch (Exception ex)
             {
@@ -114,7 +125,7 @@ namespace peluqueria_barberia.API.Controllers
                     return CreateErrorResponse(HttpStatusCode.NotFound, "Servicio no encontrado");
                 }
 
-                // Verificar si el servicio tiene turnos asociados
+                // Verificar si el servicio tiene turnos
                 var tieneTurnos = _context.Turnos.Any(t => t.ServicioID == id);
                 if (tieneTurnos)
                 {
@@ -124,7 +135,7 @@ namespace peluqueria_barberia.API.Controllers
                 _context.Servicios.Remove(servicio);
                 _context.SaveChanges();
 
-                return CreateResponse(HttpStatusCode.NoContent);
+                return CreateResponse(HttpStatusCode.OK, "Servicio eliminado correctamente");
             }
             catch (Exception ex)
             {

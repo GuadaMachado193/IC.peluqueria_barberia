@@ -3,16 +3,16 @@ using System.ComponentModel.DataAnnotations;
 
 namespace peluqueria_barberia.API.Models
 {
-    public class Rol
+    public class EstadoTurno
     {
         [Key]
-        public int RolID { get; set; }
+        public int EstadoID { get; set; }
 
         [Required]
-        [StringLength(50)]
+        [StringLength(20)]
         public string Nombre { get; set; }
 
         // Relaciones
-        public virtual ICollection<Usuario> Usuarios { get; set; }
+        public virtual ICollection<Turno> Turnos { get; set; }
     }
-}
+} 

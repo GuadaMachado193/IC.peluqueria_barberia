@@ -1,5 +1,4 @@
 using System;
-using System.Collections.Generic;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
@@ -21,6 +20,7 @@ namespace peluqueria_barberia.API.Controllers
                     .Include(t => t.Cliente)
                     .Include(t => t.Empleado)
                     .Include(t => t.Servicio)
+                    .OrderByDescending(t => t.Fecha)
                     .ToList();
 
                 return CreateResponse(HttpStatusCode.OK, turnos);
@@ -55,6 +55,51 @@ namespace peluqueria_barberia.API.Controllers
             }
         }
 
+        // GET: api/turnos/fecha/2024-01-01
+        [HttpGet]
+        [Route("fecha/{fecha}")]
+        public HttpResponseMessage GetByFecha(DateTime fecha)
+        {
+            try
+            {
+                var turnos = _context.Turnos
+                    .Include(t => t.Cliente)
+                    .Include(t => t.Empleado)
+                    .Include(t => t.Servicio)
+                    .Where(t => t.Fecha.Date == fecha.Date)
+                    .OrderBy(t => t.HoraInicio)
+                    .ToList();
+
+                return CreateResponse(HttpStatusCode.OK, turnos);
+            }
+            catch (Exception ex)
+            {
+                return CreateErrorResponse(HttpStatusCode.InternalServerError, ex.Message);
+            }
+        }
+
+        // GET: api/turnos/empleado/5/fecha/2024-01-01
+        [HttpGet]
+        [Route("empleado/{empleadoId}/fecha/{fecha}")]
+        public HttpResponseMessage GetByEmpleadoAndFecha(int empleadoId, DateTime fecha)
+        {
+            try
+            {
+                var turnos = _context.Turnos
+                    .Include(t => t.Cliente)
+                    .Include(t => t.Servicio)
+                    .Where(t => t.EmpleadoID == empleadoId && t.Fecha.Date == fecha.Date)
+                    .OrderBy(t => t.HoraInicio)
+                    .ToList();
+
+                return CreateResponse(HttpStatusCode.OK, turnos);
+            }
+            catch (Exception ex)
+            {
+                return CreateErrorResponse(HttpStatusCode.InternalServerError, ex.Message);
+            }
+        }
+
         // POST: api/turnos
         public HttpResponseMessage Post([FromBody] Turno turno)
         {
@@ -62,34 +107,22 @@ namespace peluqueria_barberia.API.Controllers
             {
                 if (!ModelState.IsValid)
                 {
-                    return CreateErrorResponse(HttpStatusCode.BadRequest, "Datos de turno inválidos");
+                    return CreateErrorResponse(HttpStatusCode.BadRequest, "Datos inválidos");
                 }
 
-                // Validar disponibilidad del turno
+                // Verificar si el empleado está disponible en ese horario
                 var turnoExistente = _context.Turnos
                     .Any(t => t.EmpleadoID == turno.EmpleadoID &&
-                             t.Fecha == turno.Fecha &&
-                             ((t.HoraInicio <= turno.HoraInicio && t.HoraFin > turno.HoraInicio) ||
-                              (t.HoraInicio < turno.HoraFin && t.HoraFin >= turno.HoraFin)));
+                             t.Fecha.Date == turno.Fecha.Date &&
+                             ((turno.HoraInicio >= t.HoraInicio && turno.HoraInicio < t.HoraFin) ||
+                              (turno.HoraFin > t.HoraInicio && turno.HoraFin <= t.HoraFin)));
 
                 if (turnoExistente)
                 {
-                    return CreateErrorResponse(HttpStatusCode.BadRequest, "Ya existe un turno en ese horario para el empleado");
+                    return CreateErrorResponse(HttpStatusCode.BadRequest, "El empleado ya tiene un turno asignado en ese horario");
                 }
 
-                turno.FechaModificacion = DateTime.Now;
                 _context.Turnos.Add(turno);
-                _context.SaveChanges();
-
-                // Crear registro en historial
-                var historial = new HistorialTurno
-                {
-                    TurnoID = turno.TurnoID,
-                    UsuarioID = 1, // TODO: Obtener del usuario autenticado
-                    Accion = "Creado",
-                    FechaCambio = DateTime.Now
-                };
-                _context.HistorialTurnos.Add(historial);
                 _context.SaveChanges();
 
                 return CreateResponse(HttpStatusCode.Created, turno);
@@ -107,12 +140,7 @@ namespace peluqueria_barberia.API.Controllers
             {
                 if (!ModelState.IsValid)
                 {
-                    return CreateErrorResponse(HttpStatusCode.BadRequest, "Datos de turno inválidos");
-                }
-
-                if (id != turno.TurnoID)
-                {
-                    return CreateErrorResponse(HttpStatusCode.BadRequest, "ID de turno no coincide");
+                    return CreateErrorResponse(HttpStatusCode.BadRequest, "Datos inválidos");
                 }
 
                 var turnoExistente = _context.Turnos.Find(id);
@@ -121,35 +149,32 @@ namespace peluqueria_barberia.API.Controllers
                     return CreateErrorResponse(HttpStatusCode.NotFound, "Turno no encontrado");
                 }
 
-                // Validar disponibilidad del turno
-                var turnoSuperpuesto = _context.Turnos
+                // Verificar si el empleado está disponible en el nuevo horario
+                var turnoConflictivo = _context.Turnos
                     .Any(t => t.TurnoID != id &&
                              t.EmpleadoID == turno.EmpleadoID &&
-                             t.Fecha == turno.Fecha &&
-                             ((t.HoraInicio <= turno.HoraInicio && t.HoraFin > turno.HoraInicio) ||
-                              (t.HoraInicio < turno.HoraFin && t.HoraFin >= turno.HoraFin)));
+                             t.Fecha.Date == turno.Fecha.Date &&
+                             ((turno.HoraInicio >= t.HoraInicio && turno.HoraInicio < t.HoraFin) ||
+                              (turno.HoraFin > t.HoraInicio && turno.HoraFin <= t.HoraFin)));
 
-                if (turnoSuperpuesto)
+                if (turnoConflictivo)
                 {
-                    return CreateErrorResponse(HttpStatusCode.BadRequest, "Ya existe un turno en ese horario para el empleado");
+                    return CreateErrorResponse(HttpStatusCode.BadRequest, "El empleado ya tiene un turno asignado en ese horario");
                 }
 
-                turno.FechaModificacion = DateTime.Now;
-                _context.Entry(turnoExistente).CurrentValues.SetValues(turno);
+                turnoExistente.ClienteID = turno.ClienteID;
+                turnoExistente.EmpleadoID = turno.EmpleadoID;
+                turnoExistente.ServicioID = turno.ServicioID;
+                turnoExistente.Fecha = turno.Fecha;
+                turnoExistente.HoraInicio = turno.HoraInicio;
+                turnoExistente.HoraFin = turno.HoraFin;
+                turnoExistente.Estado = turno.Estado;
+                turnoExistente.Notas = turno.Notas;
+                turnoExistente.FechaModificacion = DateTime.Now;
+
                 _context.SaveChanges();
 
-                // Crear registro en historial
-                var historial = new HistorialTurno
-                {
-                    TurnoID = turno.TurnoID,
-                    UsuarioID = 1, // TODO: Obtener del usuario autenticado
-                    Accion = "Modificado",
-                    FechaCambio = DateTime.Now
-                };
-                _context.HistorialTurnos.Add(historial);
-                _context.SaveChanges();
-
-                return CreateResponse(HttpStatusCode.NoContent);
+                return CreateResponse(HttpStatusCode.OK, turnoExistente);
             }
             catch (Exception ex)
             {
@@ -169,19 +194,9 @@ namespace peluqueria_barberia.API.Controllers
                 }
 
                 _context.Turnos.Remove(turno);
-
-                // Crear registro en historial
-                var historial = new HistorialTurno
-                {
-                    TurnoID = turno.TurnoID,
-                    UsuarioID = 1, // TODO: Obtener del usuario autenticado
-                    Accion = "Eliminado",
-                    FechaCambio = DateTime.Now
-                };
-                _context.HistorialTurnos.Add(historial);
                 _context.SaveChanges();
 
-                return CreateResponse(HttpStatusCode.NoContent);
+                return CreateResponse(HttpStatusCode.OK, "Turno eliminado correctamente");
             }
             catch (Exception ex)
             {

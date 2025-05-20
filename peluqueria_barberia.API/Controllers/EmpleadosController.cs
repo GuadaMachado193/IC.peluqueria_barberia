@@ -17,11 +17,7 @@ namespace peluqueria_barberia.API.Controllers
         {
             try
             {
-                var empleados = _context.Empleados
-                    .Include(e => e.EmpleadoServicios)
-                    .Include(e => e.EmpleadoServicios.Select(es => es.Servicio))
-                    .ToList();
-
+                var empleados = _context.Empleados.ToList();
                 return CreateResponse(HttpStatusCode.OK, empleados);
             }
             catch (Exception ex)
@@ -35,18 +31,53 @@ namespace peluqueria_barberia.API.Controllers
         {
             try
             {
-                var empleado = _context.Empleados
-                    .Include(e => e.EmpleadoServicios)
-                    .Include(e => e.EmpleadoServicios.Select(es => es.Servicio))
-                    .Include(e => e.Turnos)
-                    .FirstOrDefault(e => e.EmpleadoID == id);
-
+                var empleado = _context.Empleados.Find(id);
                 if (empleado == null)
                 {
                     return CreateErrorResponse(HttpStatusCode.NotFound, "Empleado no encontrado");
                 }
-
                 return CreateResponse(HttpStatusCode.OK, empleado);
+            }
+            catch (Exception ex)
+            {
+                return CreateErrorResponse(HttpStatusCode.InternalServerError, ex.Message);
+            }
+        }
+
+        // GET: api/empleados/5/turnos
+        [HttpGet]
+        [Route("{id}/turnos")]
+        public HttpResponseMessage GetTurnos(int id)
+        {
+            try
+            {
+                var turnos = _context.Turnos
+                    .Include(t => t.Cliente)
+                    .Include(t => t.Servicio)
+                    .Where(t => t.EmpleadoID == id)
+                    .OrderByDescending(t => t.Fecha)
+                    .ToList();
+
+                return CreateResponse(HttpStatusCode.OK, turnos);
+            }
+            catch (Exception ex)
+            {
+                return CreateErrorResponse(HttpStatusCode.InternalServerError, ex.Message);
+            }
+        }
+
+        // GET: api/empleados/activos
+        [HttpGet]
+        [Route("activos")]
+        public HttpResponseMessage GetActivos()
+        {
+            try
+            {
+                var empleados = _context.Empleados
+                    .Where(e => e.Estado == "activo")
+                    .ToList();
+
+                return CreateResponse(HttpStatusCode.OK, empleados);
             }
             catch (Exception ex)
             {
@@ -61,7 +92,7 @@ namespace peluqueria_barberia.API.Controllers
             {
                 if (!ModelState.IsValid)
                 {
-                    return CreateErrorResponse(HttpStatusCode.BadRequest, "Datos de empleado inválidos");
+                    return CreateErrorResponse(HttpStatusCode.BadRequest, "Datos inválidos");
                 }
 
                 _context.Empleados.Add(empleado);
@@ -82,12 +113,7 @@ namespace peluqueria_barberia.API.Controllers
             {
                 if (!ModelState.IsValid)
                 {
-                    return CreateErrorResponse(HttpStatusCode.BadRequest, "Datos de empleado inválidos");
-                }
-
-                if (id != empleado.EmpleadoID)
-                {
-                    return CreateErrorResponse(HttpStatusCode.BadRequest, "ID de empleado no coincide");
+                    return CreateErrorResponse(HttpStatusCode.BadRequest, "Datos inválidos");
                 }
 
                 var empleadoExistente = _context.Empleados.Find(id);
@@ -96,10 +122,16 @@ namespace peluqueria_barberia.API.Controllers
                     return CreateErrorResponse(HttpStatusCode.NotFound, "Empleado no encontrado");
                 }
 
-                _context.Entry(empleadoExistente).CurrentValues.SetValues(empleado);
+                empleadoExistente.Apellido = empleado.Apellido;
+                empleadoExistente.Nombre = empleado.Nombre;
+                empleadoExistente.Telefono = empleado.Telefono;
+                empleadoExistente.HorarioInicio = empleado.HorarioInicio;
+                empleadoExistente.HorarioFin = empleado.HorarioFin;
+                empleadoExistente.Estado = empleado.Estado;
+
                 _context.SaveChanges();
 
-                return CreateResponse(HttpStatusCode.NoContent);
+                return CreateResponse(HttpStatusCode.OK, empleadoExistente);
             }
             catch (Exception ex)
             {
@@ -118,7 +150,7 @@ namespace peluqueria_barberia.API.Controllers
                     return CreateErrorResponse(HttpStatusCode.NotFound, "Empleado no encontrado");
                 }
 
-                // Verificar si el empleado tiene turnos asociados
+                // Verificar si el empleado tiene turnos
                 var tieneTurnos = _context.Turnos.Any(t => t.EmpleadoID == id);
                 if (tieneTurnos)
                 {
@@ -128,7 +160,7 @@ namespace peluqueria_barberia.API.Controllers
                 _context.Empleados.Remove(empleado);
                 _context.SaveChanges();
 
-                return CreateResponse(HttpStatusCode.NoContent);
+                return CreateResponse(HttpStatusCode.OK, "Empleado eliminado correctamente");
             }
             catch (Exception ex)
             {

@@ -1,10 +1,8 @@
 using System;
-using System.Collections.Generic;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
 using System.Web.Http;
-using System.Data.Entity;
 using peluqueria_barberia.API.Models;
 
 namespace peluqueria_barberia.API.Controllers
@@ -17,10 +15,7 @@ namespace peluqueria_barberia.API.Controllers
         {
             try
             {
-                var roles = _context.Roles
-                    .Include(r => r.Usuarios)
-                    .ToList();
-
+                var roles = _context.Roles.ToList();
                 return CreateResponse(HttpStatusCode.OK, roles);
             }
             catch (Exception ex)
@@ -34,15 +29,11 @@ namespace peluqueria_barberia.API.Controllers
         {
             try
             {
-                var rol = _context.Roles
-                    .Include(r => r.Usuarios)
-                    .FirstOrDefault(r => r.RolID == id);
-
+                var rol = _context.Roles.Find(id);
                 if (rol == null)
                 {
                     return CreateErrorResponse(HttpStatusCode.NotFound, "Rol no encontrado");
                 }
-
                 return CreateResponse(HttpStatusCode.OK, rol);
             }
             catch (Exception ex)
@@ -58,16 +49,7 @@ namespace peluqueria_barberia.API.Controllers
             {
                 if (!ModelState.IsValid)
                 {
-                    return CreateErrorResponse(HttpStatusCode.BadRequest, "Datos de rol inválidos");
-                }
-
-                // Verificar si el nombre del rol ya existe
-                var rolExistente = _context.Roles
-                    .Any(r => r.Nombre == rol.Nombre);
-
-                if (rolExistente)
-                {
-                    return CreateErrorResponse(HttpStatusCode.BadRequest, "El nombre del rol ya existe");
+                    return CreateErrorResponse(HttpStatusCode.BadRequest, "Datos inválidos");
                 }
 
                 _context.Roles.Add(rol);
@@ -88,12 +70,7 @@ namespace peluqueria_barberia.API.Controllers
             {
                 if (!ModelState.IsValid)
                 {
-                    return CreateErrorResponse(HttpStatusCode.BadRequest, "Datos de rol inválidos");
-                }
-
-                if (id != rol.RolID)
-                {
-                    return CreateErrorResponse(HttpStatusCode.BadRequest, "ID de rol no coincide");
+                    return CreateErrorResponse(HttpStatusCode.BadRequest, "Datos inválidos");
                 }
 
                 var rolExistente = _context.Roles.Find(id);
@@ -102,22 +79,10 @@ namespace peluqueria_barberia.API.Controllers
                     return CreateErrorResponse(HttpStatusCode.NotFound, "Rol no encontrado");
                 }
 
-                // Verificar si el nuevo nombre del rol ya existe (si se está cambiando)
-                if (rolExistente.Nombre != rol.Nombre)
-                {
-                    var nombreRolExistente = _context.Roles
-                        .Any(r => r.Nombre == rol.Nombre);
-
-                    if (nombreRolExistente)
-                    {
-                        return CreateErrorResponse(HttpStatusCode.BadRequest, "El nombre del rol ya existe");
-                    }
-                }
-
-                _context.Entry(rolExistente).CurrentValues.SetValues(rol);
+                rolExistente.Nombre = rol.Nombre;
                 _context.SaveChanges();
 
-                return CreateResponse(HttpStatusCode.NoContent);
+                return CreateResponse(HttpStatusCode.OK, rolExistente);
             }
             catch (Exception ex)
             {
@@ -136,17 +101,10 @@ namespace peluqueria_barberia.API.Controllers
                     return CreateErrorResponse(HttpStatusCode.NotFound, "Rol no encontrado");
                 }
 
-                // Verificar si el rol tiene usuarios asociados
-                var tieneUsuarios = _context.Usuarios.Any(u => u.RolID == id);
-                if (tieneUsuarios)
-                {
-                    return CreateErrorResponse(HttpStatusCode.BadRequest, "No se puede eliminar el rol porque tiene usuarios asociados");
-                }
-
                 _context.Roles.Remove(rol);
                 _context.SaveChanges();
 
-                return CreateResponse(HttpStatusCode.NoContent);
+                return CreateResponse(HttpStatusCode.OK, "Rol eliminado correctamente");
             }
             catch (Exception ex)
             {

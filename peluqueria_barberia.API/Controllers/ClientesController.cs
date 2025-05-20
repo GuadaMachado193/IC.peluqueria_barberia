@@ -1,5 +1,4 @@
 using System;
-using System.Collections.Generic;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
@@ -31,16 +30,34 @@ namespace peluqueria_barberia.API.Controllers
         {
             try
             {
-                var cliente = _context.Clientes
-                    .Include(c => c.Turnos)
-                    .FirstOrDefault(c => c.ClienteID == id);
-
+                var cliente = _context.Clientes.Find(id);
                 if (cliente == null)
                 {
                     return CreateErrorResponse(HttpStatusCode.NotFound, "Cliente no encontrado");
                 }
-
                 return CreateResponse(HttpStatusCode.OK, cliente);
+            }
+            catch (Exception ex)
+            {
+                return CreateErrorResponse(HttpStatusCode.InternalServerError, ex.Message);
+            }
+        }
+
+        // GET: api/clientes/5/turnos
+        [HttpGet]
+        [Route("{id}/turnos")]
+        public HttpResponseMessage GetTurnos(int id)
+        {
+            try
+            {
+                var turnos = _context.Turnos
+                    .Include(t => t.Empleado)
+                    .Include(t => t.Servicio)
+                    .Where(t => t.ClienteID == id)
+                    .OrderByDescending(t => t.Fecha)
+                    .ToList();
+
+                return CreateResponse(HttpStatusCode.OK, turnos);
             }
             catch (Exception ex)
             {
@@ -55,7 +72,7 @@ namespace peluqueria_barberia.API.Controllers
             {
                 if (!ModelState.IsValid)
                 {
-                    return CreateErrorResponse(HttpStatusCode.BadRequest, "Datos de cliente inválidos");
+                    return CreateErrorResponse(HttpStatusCode.BadRequest, "Datos inválidos");
                 }
 
                 _context.Clientes.Add(cliente);
@@ -76,12 +93,7 @@ namespace peluqueria_barberia.API.Controllers
             {
                 if (!ModelState.IsValid)
                 {
-                    return CreateErrorResponse(HttpStatusCode.BadRequest, "Datos de cliente inválidos");
-                }
-
-                if (id != cliente.ClienteID)
-                {
-                    return CreateErrorResponse(HttpStatusCode.BadRequest, "ID de cliente no coincide");
+                    return CreateErrorResponse(HttpStatusCode.BadRequest, "Datos inválidos");
                 }
 
                 var clienteExistente = _context.Clientes.Find(id);
@@ -90,10 +102,14 @@ namespace peluqueria_barberia.API.Controllers
                     return CreateErrorResponse(HttpStatusCode.NotFound, "Cliente no encontrado");
                 }
 
-                _context.Entry(clienteExistente).CurrentValues.SetValues(cliente);
+                clienteExistente.Apellido = cliente.Apellido;
+                clienteExistente.Nombre = cliente.Nombre;
+                clienteExistente.Telefono = cliente.Telefono;
+                clienteExistente.Email = cliente.Email;
+
                 _context.SaveChanges();
 
-                return CreateResponse(HttpStatusCode.NoContent);
+                return CreateResponse(HttpStatusCode.OK, clienteExistente);
             }
             catch (Exception ex)
             {
@@ -112,7 +128,7 @@ namespace peluqueria_barberia.API.Controllers
                     return CreateErrorResponse(HttpStatusCode.NotFound, "Cliente no encontrado");
                 }
 
-                // Verificar si el cliente tiene turnos asociados
+                // Verificar si el cliente tiene turnos
                 var tieneTurnos = _context.Turnos.Any(t => t.ClienteID == id);
                 if (tieneTurnos)
                 {
@@ -122,7 +138,7 @@ namespace peluqueria_barberia.API.Controllers
                 _context.Clientes.Remove(cliente);
                 _context.SaveChanges();
 
-                return CreateResponse(HttpStatusCode.NoContent);
+                return CreateResponse(HttpStatusCode.OK, "Cliente eliminado correctamente");
             }
             catch (Exception ex)
             {

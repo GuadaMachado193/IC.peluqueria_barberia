@@ -1,5 +1,4 @@
 using System;
-using System.Collections.Generic;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
@@ -20,7 +19,6 @@ namespace peluqueria_barberia.API.Controllers
                 var usuarios = _context.Usuarios
                     .Include(u => u.Rol)
                     .ToList();
-
                 return CreateResponse(HttpStatusCode.OK, usuarios);
             }
             catch (Exception ex)
@@ -51,6 +49,26 @@ namespace peluqueria_barberia.API.Controllers
             }
         }
 
+        // GET: api/usuarios/por-rol/5
+        [HttpGet]
+        [Route("por-rol/{rolId}")]
+        public HttpResponseMessage GetByRol(int rolId)
+        {
+            try
+            {
+                var usuarios = _context.Usuarios
+                    .Include(u => u.Rol)
+                    .Where(u => u.RolID == rolId)
+                    .ToList();
+
+                return CreateResponse(HttpStatusCode.OK, usuarios);
+            }
+            catch (Exception ex)
+            {
+                return CreateErrorResponse(HttpStatusCode.InternalServerError, ex.Message);
+            }
+        }
+
         // POST: api/usuarios
         public HttpResponseMessage Post([FromBody] Usuario usuario)
         {
@@ -58,7 +76,7 @@ namespace peluqueria_barberia.API.Controllers
             {
                 if (!ModelState.IsValid)
                 {
-                    return CreateErrorResponse(HttpStatusCode.BadRequest, "Datos de usuario inválidos");
+                    return CreateErrorResponse(HttpStatusCode.BadRequest, "Datos inválidos");
                 }
 
                 // Verificar si el nombre de usuario ya existe
@@ -88,12 +106,7 @@ namespace peluqueria_barberia.API.Controllers
             {
                 if (!ModelState.IsValid)
                 {
-                    return CreateErrorResponse(HttpStatusCode.BadRequest, "Datos de usuario inválidos");
-                }
-
-                if (id != usuario.UsuarioID)
-                {
-                    return CreateErrorResponse(HttpStatusCode.BadRequest, "ID de usuario no coincide");
+                    return CreateErrorResponse(HttpStatusCode.BadRequest, "Datos inválidos");
                 }
 
                 var usuarioExistente = _context.Usuarios.Find(id);
@@ -114,10 +127,22 @@ namespace peluqueria_barberia.API.Controllers
                     }
                 }
 
-                _context.Entry(usuarioExistente).CurrentValues.SetValues(usuario);
+                usuarioExistente.Usuario = usuario.Usuario;
+                usuarioExistente.Email = usuario.Email;
+                usuarioExistente.Apellido = usuario.Apellido;
+                usuarioExistente.Nombre = usuario.Nombre;
+                usuarioExistente.Telefono = usuario.Telefono;
+                usuarioExistente.Estado = usuario.Estado;
+                usuarioExistente.RolID = usuario.RolID;
+
+                if (!string.IsNullOrEmpty(usuario.Clave))
+                {
+                    usuarioExistente.Clave = usuario.Clave;
+                }
+
                 _context.SaveChanges();
 
-                return CreateResponse(HttpStatusCode.NoContent);
+                return CreateResponse(HttpStatusCode.OK, usuarioExistente);
             }
             catch (Exception ex)
             {
@@ -136,17 +161,10 @@ namespace peluqueria_barberia.API.Controllers
                     return CreateErrorResponse(HttpStatusCode.NotFound, "Usuario no encontrado");
                 }
 
-                // Verificar si el usuario tiene registros en el historial
-                var tieneHistorial = _context.HistorialTurnos.Any(h => h.UsuarioID == id);
-                if (tieneHistorial)
-                {
-                    return CreateErrorResponse(HttpStatusCode.BadRequest, "No se puede eliminar el usuario porque tiene registros en el historial");
-                }
-
                 _context.Usuarios.Remove(usuario);
                 _context.SaveChanges();
 
-                return CreateResponse(HttpStatusCode.NoContent);
+                return CreateResponse(HttpStatusCode.OK, "Usuario eliminado correctamente");
             }
             catch (Exception ex)
             {
